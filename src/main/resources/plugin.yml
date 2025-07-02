@@ -1,0 +1,4 @@
+name: RPGPlugin
+version: '1.0-SNAPSHOT'
+main: com.example.rPGPlugin.RPGPlugin
+api-version: '1.21'
