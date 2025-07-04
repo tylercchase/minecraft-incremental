@@ -1,14 +1,20 @@
 package com.example.rPGPlugin.listeners
 
+import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerDropItemEvent
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 
 class BlockListeners : Listener {
     @EventHandler
@@ -43,6 +49,10 @@ class BlockListeners : Listener {
     }
 
     @EventHandler
+    fun onPlayerInteract(event: PlayerInteractEvent) {
+    }
+
+    @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
         event.isCancelled = true // disable everything for now
     }
@@ -50,6 +60,24 @@ class BlockListeners : Listener {
     @EventHandler
     fun onPlayerDropItem(event: PlayerDropItemEvent) {
         event.isCancelled = true
+    }
+
+    @EventHandler
+    fun onBlockInventoryMove(event: InventoryClickEvent) {
+        if (event.whoClicked is Player) {
+            val itemData = event.currentItem?.getData(DataComponentTypes.ITEM_NAME)
+            if (itemData != null) {
+                val key = NamespacedKey("rpgplugin", "action")
+                if (event.currentItem?.persistentDataContainer?.has(key, PersistentDataType.STRING) ?: false) {
+                    val value = event.currentItem?.persistentDataContainer?.get(key, PersistentDataType.STRING)
+                    if (value == "MENU") {
+                        event.isCancelled = true
+                        return
+                    }
+                }
+            }
+            return
+        }
     }
 
 }
