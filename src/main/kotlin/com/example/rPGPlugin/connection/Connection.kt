@@ -1,14 +1,25 @@
 package com.example.rPGPlugin.connection
 
 
-import com.mongodb.*;
-import org.bson.BsonDocument;
-import org.bson.BsonInt64;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
+import com.example.rPGPlugin.data.PlayerData
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
+import com.mongodb.MongoClientSettings.getDefaultCodecRegistry
+import com.mongodb.MongoWriteException
+import com.mongodb.ServerApi
+import com.mongodb.ServerApiVersion
+import com.mongodb.client.MongoClient
+import com.mongodb.client.MongoClients
+import com.mongodb.client.MongoCollection
+import com.mongodb.client.MongoDatabase
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.ReplaceOptions
+import org.bson.BsonDocument
+import org.bson.BsonInt64
+import org.bson.codecs.configuration.CodecProvider
+import org.bson.codecs.configuration.CodecRegistries.fromProviders
+import org.bson.codecs.configuration.CodecRegistries.fromRegistries
+import org.bson.codecs.pojo.PojoCodecProvider
 
 
 class Connection {
@@ -24,12 +35,13 @@ class Connection {
     }
     var mongoClient: MongoClient? = null
     var database: MongoDatabase? = null
+    var collection: MongoCollection<PlayerData>? = null
 
     private constructor() {
         initConnection()
     }
 
-    public fun initConnection() {
+    fun initConnection() {
         println("Connecting to $uri")
 
         // Construct a ServerApi instance using the ServerApi.builder() method
@@ -42,7 +54,12 @@ class Connection {
             .build()
         try {
             this.mongoClient = MongoClients.create(settings)
-            this.database = mongoClient?.getDatabase("players")
+            val pojoCodecProvider: CodecProvider = PojoCodecProvider.builder().automatic(true).build()
+            val pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider))
+
+
+            this.database = mongoClient?.getDatabase("players")?.withCodecRegistry(pojoCodecRegistry)
+            this.collection = database?.getCollection("players", PlayerData::class.java)
             try {
                 val command = BsonDocument("ping", BsonInt64(1));
                 val commandResult = database?.runCommand(command)
@@ -55,4 +72,24 @@ class Connection {
             println("Could not initialize Admin")
         }
     }
+
+    fun getPlayerData(uuid: String): PlayerData {
+        try {
+            return this.collection?.find(Filters.eq("_id", uuid))?.first() ?: PlayerData(uuid)
+        } catch (exception: MongoWriteException) {
+            return PlayerData(uuid)
+        }
+    }
+
+    fun setPlayerData(data: PlayerData?) {
+        // TODO: there's definitely optimizations here for only updating the parts that need to be
+        // for now just throw whatever we have in the db
+        try {
+            val options = ReplaceOptions().upsert(true)
+            this.collection?.replaceOne(Filters.eq("_id", data?.getId()), data, options)
+        } catch(exception: MongoWriteException) {
+            println("Something went wrong")
+        }
+    }
+
 }

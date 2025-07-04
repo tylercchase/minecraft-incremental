@@ -1,28 +1,26 @@
 package com.example.rPGPlugin.data
 
-import org.bson.types.ObjectId
 
 class PlayerData {
-    private lateinit var id: ObjectId
-    private lateinit var name: String
+    private lateinit var id: String
+    private var joinCount: Int = 0
 
-    constructor() {
-    }
-    constructor(id: ObjectId, name: String) {
-        this.id = id
-        this.name = name
-    }
-
-    public fun setId(id: ObjectId) {
+    constructor()
+    constructor(id: String) {
         this.id = id
     }
-    public fun setName(name: String) {
-        this.name = name
+
+    fun setId(id: String) {
+        this.id = id
     }
-    public fun getId(): ObjectId {
+
+    fun getId(): String {
         return id
     }
-    public fun getName(): String {
-        return name
+    fun setJoinCount(joinCount: Int) {
+        this.joinCount = joinCount
+    }
+    fun getJoinCount(): Int {
+        return joinCount
     }
 }
