@@ -23,21 +23,25 @@ import org.bson.codecs.pojo.PojoCodecProvider
 
 
 class Connection {
-    val uri = "mongodb://root:example@localhost:27017"
+    var uri = ""
+
     companion object {
         private lateinit var singleInstance: Connection
-        public fun getInstance(): Connection {
+        public fun getInstance(uri: String? = ""): Connection {
             if (!::singleInstance.isInitialized) {
-                this.singleInstance = Connection()
+                this.singleInstance = Connection(uri ?: "")
             }
             return this.singleInstance
         }
     }
+
     var mongoClient: MongoClient? = null
     var database: MongoDatabase? = null
     var collection: MongoCollection<PlayerData>? = null
 
-    private constructor() {
+    private constructor()
+    private constructor(uri: String) {
+        this.uri = uri
         initConnection()
     }
 
@@ -65,7 +69,7 @@ class Connection {
                 val commandResult = database?.runCommand(command)
                 println("Pinged document successfully")
                 println(commandResult)
-            } catch(e : Exception) {
+            } catch (e: Exception) {
                 println("Something went wrong")
             }
         } catch (e: Exception) {
@@ -87,7 +91,7 @@ class Connection {
         try {
             val options = ReplaceOptions().upsert(true)
             this.collection?.replaceOne(Filters.eq("_id", data?.getId()), data, options)
-        } catch(exception: MongoWriteException) {
+        } catch (exception: MongoWriteException) {
             println("Something went wrong")
         }
     }

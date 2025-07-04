@@ -35,6 +35,11 @@ internal class PlayerHandler {
         var data = players[uuid]
         connection.setPlayerData(data)
         players.remove(uuid)
-
+    }
+    fun closeAllPlayers() {
+        // this should definitely do a batched call to update the db
+        for(player in players.keys) {
+            closePlayer(player)
+        }
     }
 }
