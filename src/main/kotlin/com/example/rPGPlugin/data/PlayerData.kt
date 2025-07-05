@@ -17,9 +17,11 @@ class PlayerData {
     fun getId(): String {
         return id
     }
+
     fun setJoinCount(joinCount: Int) {
         this.joinCount = joinCount
     }
+
     fun getJoinCount(): Int {
         return joinCount
     }
